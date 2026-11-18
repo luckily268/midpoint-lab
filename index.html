@@ -1,0 +1,1137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="拖动凸四边形的四个顶点，实时探究对角线与中点四边形的关系。">
+  <title>中点四边形 · 动态几何实验</title>
+  <style>
+:root {
+  color-scheme: light;
+  --background: #f5f3ed;
+  --paper: #fff;
+  --ink: #19223b;
+  --secondary: #505b73;
+  --muted: #646e83;
+  --border: #e2e3ea;
+  --accent: #5146e5;
+  --accent-dark: #4035c4;
+  --accent-soft: #eeecff;
+  --teal: #087b74;
+  --teal-soft: #e7f7f3;
+  --outer: #445069;
+  --ac: #9258ad;
+  --bd: #087b74;
+  --shadow: 0 3px 7px #1f274506, 0 12px 30px #1f274509;
+  font-family: "Instrument Sans", "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+  font-synthesis: none;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--background);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body { margin: 0; }
+
+h1, h2, h3, p { margin: 0; }
+
+button, input, output { font: inherit; }
+
+button { cursor: pointer; }
+
+a { color: var(--accent-dark); text-underline-offset: 0.22em; }
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+[hidden] { display: none !important; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  margin: -1px;
+  padding: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.site-header {
+  background: var(--paper);
+  border-bottom: 1px solid #e9e7df;
+}
+
+.header-inner, .shell {
+  width: min(100% - 72px, 1320px);
+  margin-inline: auto;
+}
+
+.header-inner {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.brand-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: var(--accent);
+  color: #fff;
+}
+
+.brand-icon svg { display: block; width: 23px; height: 23px; }
+
+.brand-name {
+  display: block;
+  font-size: 0.96rem;
+  font-weight: 800;
+  line-height: 1.24;
+}
+
+.brand-sub {
+  display: block;
+  color: var(--muted);
+  font-size: 0.68rem;
+  padding-inline-start: 10px;
+  border-inline-start: 1px solid var(--border);
+}
+
+.header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  font-size: 0.81rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.header-link:hover { background: var(--accent-soft); }
+
+.shell { padding: 38px 0 56px; }
+
+.hero { margin: 0 0 26px; }
+
+.hero-tag, .card-kicker {
+  color: var(--accent-dark);
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.hero-tag { margin-bottom: 8px; }
+
+.hero h1 {
+  font-size: clamp(2.2rem, 4.25vw, 3.6rem);
+  font-weight: 840;
+  letter-spacing: -0.055em;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.hero h1 span { color: var(--accent); }
+
+.lead {
+  margin-top: 12px;
+  color: var(--secondary);
+  font-size: clamp(0.92rem, 1.5vw, 1.05rem);
+  line-height: 1.65;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 2.05fr) minmax(310px, 1fr);
+  gap: 21px;
+  align-items: start;
+}
+
+.card {
+  min-width: 0;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 19px;
+  box-shadow: var(--shadow);
+}
+
+.card h2 {
+  font-size: clamp(1.06rem, 1.7vw, 1.24rem);
+  line-height: 1.35;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13px;
+  padding: 18px 20px 13px;
+}
+
+.card-title p, .readout-card > p, .adjustment > p {
+  color: var(--secondary);
+  font-size: 0.78rem;
+  margin-top: 4px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--secondary);
+  font-size: 0.78rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.button:hover { border-color: #bfb9ff; color: var(--accent-dark); background: #faf9ff; }
+
+.button svg { flex: none; width: 15px; height: 15px; }
+
+.preset-block { padding: 0 20px 14px; }
+
+.preset-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.preset-caption span { font-weight: 500; }
+
+.presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+
+.preset {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 51px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fafbfe;
+  color: var(--ink);
+  text-align: left;
+  line-height: 1.23;
+}
+
+.preset:hover { border-color: #bfb9ff; background: #f7f5ff; }
+
+.preset[aria-pressed="true"] {
+  color: var(--accent-dark);
+  border-color: #a7a0f4;
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px #5146e519;
+}
+
+.preset strong { font-size: 0.8rem; font-weight: 800; overflow-wrap: anywhere; }
+.preset small { color: var(--muted); font-size: 0.66rem; overflow-wrap: anywhere; }
+.preset[aria-pressed="true"] small { color: #524c91; }
+
+.stage-shell {
+  position: relative;
+  margin: 0 20px;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid #e2e4ee;
+  border-radius: 13px;
+  background: #f8f9fe;
+}
+
+#board { display: block; width: 100%; height: auto; }
+
+.stage-hint {
+  position: absolute;
+  z-index: 1;
+  inset: 10px auto auto 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  border: 1px solid #e2e4ef;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--secondary);
+  font-size: 0.66rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.stage-hint svg { width: 13px; height: 13px; }
+
+.board-announce {
+  position: absolute;
+  z-index: 2;
+  inset: auto 8px 12px;
+  width: max-content;
+  max-width: calc(100% - 16px);
+  margin-inline: auto;
+  padding: 5px 10px;
+  background: #fff4e4;
+  color: #774217;
+  border: 1px solid #f4d4ac;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #39250614;
+  font-size: 0.74rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.board-announce:empty { display: none; }
+
+.board-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px 15px;
+  padding: 12px 20px 15px;
+}
+
+.legend, .toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  color: var(--secondary);
+  font-size: 0.73rem;
+}
+
+.legend-item, .toggle-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.swatch { width: 13px; height: 0; border-top: 2px solid currentColor; }
+.swatch.outer { color: var(--outer); }
+.swatch.mid { color: var(--accent); border-top-width: 3px; }
+.swatch.ac { color: var(--ac); border-top-style: dashed; }
+.swatch.bd { color: var(--bd); border-top-style: dashed; }
+
+.toggle-row label { cursor: pointer; min-height: 25px; }
+
+.toggle-row input {
+  margin: 0;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+}
+
+.readout-card { padding: 18px 18px 20px; }
+
+.shape-box {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-top: 14px;
+  padding: 11px;
+  border: 1px solid #dad6fb;
+  border-radius: 12px;
+  background: #f5f3ff;
+}
+
+.shape-symbol {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #e8e3ff;
+  color: var(--accent-dark);
+}
+
+.shape-symbol svg { width: 24px; height: 24px; }
+
+.shape-info { flex: 1; min-width: 88px; }
+.shape-info small, .shape-info p, .shape-info > span { display: block; color: #605b83; font-size: 0.69rem; }
+.shape-info strong { display: block; color: #33298f; font-size: 1.02rem; font-weight: 850; }
+
+.shape-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border-radius: 100px;
+  background: #e8e3ff;
+  color: #463aaa;
+  white-space: nowrap;
+  font-size: 0.64rem;
+  font-weight: 750;
+}
+
+.metrics-group { margin-top: 17px; }
+
+.metrics-group + .metrics-group { padding-top: 13px; border-top: 1px solid #edebf0; }
+
+.section-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 7px;
+  font-size: 0.75rem;
+  color: var(--secondary);
+  font-weight: 780;
+}
+
+.section-label span { color: var(--muted); font-weight: 600; font-size: 0.66rem; }
+
+.metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+
+.metric {
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid #ebeaf0;
+  border-radius: 8px;
+  background: #fafafd;
+}
+
+.metric-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.69rem;
+  line-height: 1.35;
+}
+
+.metric-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 4px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.45;
+}
+
+.metric-value strong { font-size: 0.99rem; font-weight: 815; }
+.metric-value small { color: var(--muted); font-size: 0.65rem; }
+
+.conditions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+
+.condition {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 23px;
+  padding: 3px 7px;
+  border: 1px solid #e7e6ed;
+  border-radius: 99px;
+  background: #f7f7fa;
+  color: var(--secondary);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.condition[data-match="true"] { border-color: #b9e9df; background: var(--teal-soft); color: #076b62; }
+.readout-card > .precision-note { margin-top: 9px; color: var(--muted); font-size: 0.68rem; }
+
+.adjustment, .lesson { margin-top: 20px; padding: 17px 20px 20px; }
+.adjust-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 13px; }
+
+.slider-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 7px;
+  padding: 9px 11px;
+  border: 1px solid #ebeaf0;
+  border-radius: 10px;
+  background: #fafafd;
+}
+
+.slider-field label { font-size: 0.82rem; font-weight: 750; }
+.slider-field output { color: var(--accent-dark); font-size: 0.78rem; font-weight: 780; font-variant-numeric: tabular-nums; }
+.slider-field input { grid-column: 1 / -1; margin: 5px 0; width: 100%; accent-color: var(--accent); }
+.slider-field small { grid-column: 1 / -1; color: var(--muted); font-size: 0.7rem; }
+
+.lesson summary {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  padding-right: 24px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  list-style: none;
+}
+
+.lesson summary::-webkit-details-marker { display: none; }
+
+.lesson summary::after {
+  content: "+";
+  position: absolute;
+  inset: 50% 2px auto auto;
+  transform: translateY(-50%);
+  color: var(--accent-dark);
+  font-size: 1.14rem;
+  line-height: 1;
+}
+
+.lesson details[open] > summary::after { content: "−"; }
+.lesson h2 + details, .lesson .card-title + details { margin-top: 12px; }
+.lesson details + details { margin-top: 11px; padding-top: 10px; border-top: 1px solid #ecebf0; }
+.lesson-body { margin-top: 8px; color: var(--secondary); font-size: 0.86rem; line-height: 1.72; }
+.lesson-body p + p { margin-top: 7px; }
+.lesson-body ol, .lesson-body ul { padding-inline-start: 1.4em; margin-block: 5px 0; }
+.lesson-body strong { color: var(--ink); }
+
+@media (max-width: 860px) {
+  .header-inner, .shell { width: min(100% - 40px, 700px); }
+  .workspace { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .metrics-group { margin-top: 13px; }
+  .metric-grid { grid-template-columns: repeat(auto-fit, minmax(min(105px, 42%), 1fr)); }
+  .adjust-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 550px) {
+  .header-inner, .shell { width: calc(100% - 26px); }
+  .header-inner { min-height: 56px; }
+  .brand-icon { width: 33px; height: 33px; }
+  .brand-icon svg { width: 21px; height: 21px; }
+  .brand { gap: 8px; }
+  .brand-name { font-size: 0.89rem; }
+  .brand-sub { padding-inline-start: 7px; }
+  .header-link { padding: 6px 4px; font-size: 0.73rem; }
+  .shell { padding: 25px 0 35px; }
+  .hero { margin-bottom: 19px; }
+  .lead { margin-top: 8px; }
+  .card { border-radius: 14px; }
+  .card-header { padding: 13px 12px 10px; }
+  .preset-block { padding: 0 12px 10px; }
+  .presets { gap: 4px; }
+  .preset { padding: 6px 4px; align-items: center; text-align: center; }
+  .preset strong { font-size: 0.73rem; }
+  .preset small { font-size: 0.62rem; }
+  .stage-shell { margin: 0 7px; border-radius: 9px; }
+  .stage-hint { inset: 4px auto auto 4px; padding: 2px 5px; font-size: 0.61rem; }
+  .stage-hint svg { display: none; }
+  .board-footer { padding: 9px 12px 11px; gap: 7px 9px; }
+  .legend, .toggle-row { gap: 5px 8px; }
+  .readout-card, .adjustment, .lesson { padding: 13px 12px 14px; }
+  .adjustment, .lesson { margin-top: 16px; }
+  .adjust-grid { grid-template-columns: minmax(0, 1fr); gap: 7px; }
+}
+
+#board { user-select: none; }
+#board #outer-shape {
+  fill: #8a95b011;
+  stroke: var(--outer);
+  stroke-width: 2.8;
+  stroke-linejoin: round;
+}
+#mid-fill { fill: #665bf42b; }
+#mid-outline { fill: none; stroke: var(--accent); }
+#mid-outline, #colored-edges line { stroke-width: 3.6; stroke-linejoin: round; stroke-linecap: round; }
+#board .ac-line { stroke: var(--ac); }
+#board .bd-line { stroke: var(--bd); }
+#diagonals line { stroke-width: 2.25; stroke-dasharray: 8 5; stroke-linecap: round; }
+#angle-marks path { fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+#angle-o { stroke: #56617b; }
+#angle-f { stroke: var(--accent-dark); }
+#board .diagram-label {
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: #fafafd;
+  stroke-width: 4;
+  stroke-linejoin: round;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font: 700 20px "Instrument Sans", system-ui, sans-serif;
+  pointer-events: none;
+}
+#board .midpoint .diagram-label, #intersection .diagram-label { font-size: 17px; }
+#board .midpoint .diagram-label { fill: var(--accent-dark); }
+#board .midpoint .marker-dot { fill: var(--accent); stroke: #fff; stroke-width: 1.8; }
+#intersection circle { fill: var(--outer); stroke: #fff; stroke-width: 1.4; }
+#board .vertex { cursor: grab; touch-action: none; outline: none; }
+#board .vertex.dragging { cursor: grabbing; }
+#board .vertex .handle-hit { fill: transparent; }
+#board .vertex .handle-focus { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.8; opacity: 0; }
+#board .vertex:is(:focus-visible, :hover, .dragging) .handle-focus { opacity: 1; }
+#board .vertex .marker-dot { fill: #fff; stroke: var(--ink); stroke-width: 2.8; }
+#board .vertex.dragging .marker-dot { stroke: var(--accent); }
+.shape-box[data-shape="正方形"] { background: var(--teal-soft); }
+.shape-box[data-shape="正方形"] .shape-symbol { color: var(--teal); }
+.precision-note { margin-top: 12px; color: var(--muted); font-size: 0.74rem; }
+@media (max-width: 540px) {
+  #board .vertex .handle-hit { r: 33px; }
+  #board .vertex .marker-dot { r: 10px; }
+  #board .diagram-label { font-size: 24px; }
+  #board .midpoint .diagram-label, #intersection .diagram-label { font-size: 20px; }
+}
+
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 28 28" fill="none"><path d="M5 8.5 20 4l4 15.5L9 24 5 8.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m12.5 6.25 9.5 5.5-5.5 10-9.5-5.5 5.5-10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+        <span class="brand-name">李秋仪自制教具模拟器</span>
+      </div>
+      <a class="header-link" href="#proof">原理与结论 <span aria-hidden="true">↘</span></a>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <h1 id="page-title">中点四边形<span aria-hidden="true">.</span></h1>
+      <p class="lead">拖动顶点，观察原四边形的对角线怎样决定中点四边形的形状。</p>
+    </section>
+
+    <div class="workspace">
+      <section class="card board-card" aria-labelledby="board-title">
+        <header class="card-header">
+          <div class="card-title"><h2 id="board-title">交互画板</h2><p>试试把外框拉成不规则的形状。</p></div>
+          <button class="button reset" type="button" id="reset" title="恢复当前对照组的初始状态"><span aria-hidden="true">↺</span> 重置</button>
+        </header>
+
+        <div class="preset-block">
+          <div class="preset-caption">四组对照实验 <span>AC 固定为 18 cm</span></div>
+          <div class="presets" role="group" aria-label="四组对照实验">
+            <button type="button" class="preset" data-preset="A" aria-pressed="true"><strong>A 组</strong><small>12 cm · 60°</small></button>
+            <button type="button" class="preset" data-preset="B" aria-pressed="false"><strong>B 组</strong><small>12 cm · 90°</small></button>
+            <button type="button" class="preset" data-preset="C" aria-pressed="false"><strong>C 组</strong><small>18 cm · 60°</small></button>
+            <button type="button" class="preset" data-preset="D" aria-pressed="false"><strong>D 组</strong><small>18 cm · 90°</small></button>
+          </div>
+        </div>
+
+        <div class="stage-shell">
+          <div class="stage-hint" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2v16M2 10h16M7.5 4.5 10 2l2.5 2.5M7.5 15.5 10 18l2.5-2.5M4.5 7.5 2 10l2.5 2.5m11-5L18 10l-2.5 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> 拖动 A、B、C、D</div>
+          <svg id="board" viewBox="0 0 760 510" aria-labelledby="svg-title svg-desc">
+            <title id="svg-title">凸四边形 ABCD 和中点四边形 EFGH</title>
+            <desc id="svg-desc">可以用鼠标、触屏或者方向键移动顶点 A、B、C、D。O 是两条对角线的交点。</desc>
+            <defs><pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M 25 0 H 0 V 25" fill="none" stroke="#e6e7ef" stroke-width="1"/></pattern></defs>
+            <rect width="760" height="510" fill="#fafafd"/>
+            <rect width="760" height="510" fill="url(#grid)"/>
+            <polygon id="outer-shape"/>
+            <polygon id="mid-fill"/>
+            <g id="diagonals"><line id="diagonal-ac" class="ac-line"/><line id="diagonal-bd" class="bd-line"/></g>
+            <g id="mid-edges"><polygon id="mid-outline"/><g id="colored-edges" hidden><line class="ac-line"/><line class="bd-line"/><line class="ac-line"/><line class="bd-line"/></g></g>
+            <g id="angle-marks"><path id="angle-o"/><path id="angle-f"/></g>
+            <g id="midpoints"></g>
+            <g id="intersection"><circle r="4.5"/><text class="diagram-label">O</text></g>
+            <g id="vertices"></g>
+          </svg>
+          <p class="board-announce" id="board-announce" role="status" hidden>请把顶点留在能组成凸四边形的位置。</p>
+        </div>
+
+        <div class="board-footer">
+          <div class="legend" aria-label="图例">
+            <span class="legend-item"><i class="swatch outer"></i>原四边形</span>
+            <span class="legend-item"><i class="swatch mid"></i>中点四边形</span>
+            <span class="legend-item diag-legend"><i class="swatch ac"></i>AC</span>
+            <span class="legend-item diag-legend"><i class="swatch bd"></i>BD</span>
+          </div>
+          <div class="toggle-row">
+            <label><input type="checkbox" id="show-diagonals" checked> 对角线</label>
+            <label><input type="checkbox" id="show-angle" checked> 角标</label>
+            <label><input type="checkbox" id="match-colors"> 中位线配色</label>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card readout-card" aria-labelledby="readout-title">
+        <h2 id="readout-title">实时数据</h2>
+        <div class="shape-box" id="shape-box">
+          <span class="shape-symbol" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><polygon id="shape-symbol" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+          <div class="shape-info"><span>中点四边形 EFGH</span><strong id="shape-name">平行四边形</strong></div>
+        </div>
+
+        <section class="metrics-group" aria-labelledby="outer-metrics">
+          <h3 class="section-label" id="outer-metrics">对角线 <span>ABCD</span></h3>
+          <div class="metric-grid">
+            <div class="metric"><span class="metric-label">AC</span><span class="metric-value"><strong id="value-ac">18.00</strong><small>cm</small></span></div>
+            <div class="metric"><span class="metric-label">BD</span><span class="metric-value"><strong id="value-bd">12.00</strong><small>cm</small></span></div>
+            <div class="metric"><span class="metric-label">∠AOB</span><span class="metric-value"><strong id="value-aob">60.0</strong><small>°</small></span></div>
+            <div class="metric"><span class="metric-label">长度差 |AC−BD|</span><span class="metric-value"><strong id="value-difference">6.00</strong><small>cm</small></span></div>
+          </div>
+        </section>
+
+        <section class="metrics-group" aria-labelledby="inner-metrics">
+          <h3 class="section-label" id="inner-metrics">中点四边形 <span>EFGH</span></h3>
+          <div class="metric-grid">
+            <div class="metric"><span class="metric-label">EF = GH</span><span class="metric-value"><strong id="value-ef">9.00</strong><small>cm</small></span></div>
+            <div class="metric"><span class="metric-label">FG = HE</span><span class="metric-value"><strong id="value-fg">6.00</strong><small>cm</small></span></div>
+            <div class="metric"><span class="metric-label">∠EFG = ∠GHE</span><span class="metric-value"><strong id="value-efg">120.0</strong><small>°</small></span></div>
+            <div class="metric"><span class="metric-label">∠HEF = ∠FGH</span><span class="metric-value"><strong id="value-hef">60.0</strong><small>°</small></span></div>
+          </div>
+        </section>
+
+        <div class="conditions" aria-label="对角线条件">
+          <div class="condition" id="equal-condition" data-match="false"><span>等长</span><strong id="equal-state">否</strong></div>
+          <div class="condition" id="perpendicular-condition" data-match="false"><span>垂直</span><strong id="perpendicular-state">否</strong></div>
+        </div>
+        <p class="precision-note">读数经过四舍五入，形状按实际数值判定。</p>
+      </aside>
+    </div>
+
+    <section class="card adjustment" aria-labelledby="adjust-title">
+      <div class="card-title"><h2 id="adjust-title">控制变量</h2><p>每次只调整一个滑块。改变分点比例时，保持对角线的长度和夹角。</p></div>
+      <div class="adjust-grid">
+        <div class="slider-field"><label for="bd-length">BD 长度</label><output id="bd-output" for="bd-length">12.0 cm</output><input id="bd-length" type="range" min="8" max="20" step="0.1" value="12"><small>沿 BD 移动 B、D</small></div>
+        <div class="slider-field"><label for="diag-angle">∠AOB</label><output id="angle-output" for="diag-angle">60°</output><input id="diag-angle" type="range" min="30" max="150" step="1" value="60"><small>绕 O 转动 BD</small></div>
+        <div class="slider-field"><label for="split-ac">AO / AC</label><output id="ac-split-output" for="split-ac">33.3%</output><input id="split-ac" type="range" min="20" max="80" step="any" value="33.3333"><small>改变 O 在 AC 上的分点位置</small></div>
+        <div class="slider-field"><label for="split-bd">BO / BD</label><output id="bd-split-output" for="split-bd">25.0%</output><input id="split-bd" type="range" min="20" max="80" step="any" value="25"><small>改变 O 在 BD 上的分点位置</small></div>
+      </div>
+    </section>
+
+    <section class="card lesson" id="proof" aria-labelledby="proof-title">
+      <div class="card-title"><h2 id="proof-title">原理与结论</h2></div>
+      <details><summary>怎么做单变量对照？</summary><div class="lesson-body"><p>比较 A 与 B、C 与 D，观察只改夹角时内角怎样变化。比较 A 与 C、B 与 D，观察只改 BD 长度时相邻边怎样变化。</p><p>切到 D 组，调整 AO / AC 或 BO / BD，观察外框变形时，里面是否一直是正方形。</p></div></details>
+      <details><summary>为什么中点四边形一定是平行四边形？</summary><div class="lesson-body"><p>E、F 是 △ABC 两边的中点，所以 EF ∥ AC，且 EF = AC / 2。同理，GH ∥ AC，且 GH = AC / 2。FG、HE 都平行于 BD，长度等于 BD / 2。两组对边分别平行，所以 EFGH 是平行四边形。</p><p>在图中，射线 FE 与 OA 同向，射线 FG 与 OB 反向，因此 ∠EFG = 180° − ∠AOB。打开「中位线配色」，可以观察这些平行关系。</p></div></details>
+      <details><summary>什么时候得到矩形、菱形或正方形？</summary><div class="lesson-body"><p>AC 与 BD 等长时，EF 与 FG 等长，EFGH 是菱形。AC 与 BD 垂直时，EF 与 FG 垂直，EFGH 是矩形。两条对角线等长且垂直，恰好是 EFGH 为正方形的充要条件。</p></div></details>
+    </section>
+  </main>
+
+  <script>
+const Geometry = (() => {
+  'use strict';
+
+  const scale = 25;
+  const radiansPerDegree = Math.PI / 180;
+  const epsilon = 1e-7;
+  const defaults = Object.freeze({
+    ac: 18,
+    bd: 12,
+    angle: 60,
+    splitAC: 1 / 3,
+    splitBD: 1 / 4,
+    origin: Object.freeze({ x: 410, y: 174 }),
+    rotation: -120,
+    orientation: 1,
+  });
+
+  const vector = (from, to) => ({ x: to.x - from.x, y: to.y - from.y });
+  const cross = (first, second) => first.x * second.y - first.y * second.x;
+  const dot = (first, second) => first.x * second.x + first.y * second.y;
+  const length = ({ x, y }) => Math.hypot(x, y);
+  const angleBetween = (first, second) =>
+    Math.atan2(Math.abs(cross(first, second)), dot(first, second)) / radiansPerDegree;
+
+  function construct(options = {}) {
+    const { ac, bd, angle, splitAC, splitBD, origin, rotation, orientation } = {
+      ...defaults,
+      ...options,
+    };
+    const directionA = rotation * radiansPerDegree;
+    const directionB = (rotation + orientation * angle) * radiansPerDegree;
+    function pointAlong(direction, centimetres) {
+      return {
+        x: origin.x + scale * centimetres * Math.cos(direction),
+        y: origin.y + scale * centimetres * Math.sin(direction),
+      };
+    }
+    return [
+      pointAlong(directionA, ac * splitAC),
+      pointAlong(directionB, bd * splitBD),
+      pointAlong(directionA, -ac * (1 - splitAC)),
+      pointAlong(directionB, -bd * (1 - splitBD)),
+    ];
+  }
+
+  function isValid(points) {
+    if (points.length !== 4 || points.some(({ x, y }) => !Number.isFinite(x) || !Number.isFinite(y))) {
+      return false;
+    }
+    const sides = points.map((point, index) => vector(point, points[(index + 1) % 4]));
+    const turns = sides.map((side, index) => cross(side, sides[(index + 1) % 4]));
+    return turns.every((turn) => turn > epsilon) || turns.every((turn) => turn < -epsilon);
+  }
+
+  function fit(points, { minX = 45, maxX = 715, minY = 35, maxY = 475 } = {}) {
+    function translation(axis, minimum, maximum) {
+      const coordinates = points.map((point) => point[axis]);
+      const low = Math.min(...coordinates);
+      const high = Math.max(...coordinates);
+      const leastOffset = minimum - low;
+      const greatestOffset = maximum - high;
+      if (leastOffset > greatestOffset) return (leastOffset + greatestOffset) / 2;
+      return Math.max(leastOffset, Math.min(0, greatestOffset));
+    }
+
+    const dx = translation('x', minX, maxX);
+    const dy = translation('y', minY, maxY);
+    return points.map(({ x, y }) => ({ x: x + dx, y: y + dy }));
+  }
+
+  function area(points) {
+    const twiceArea = points.reduce(
+      (sum, point, index) => sum + cross(point, points[(index + 1) % 4]),
+      0,
+    );
+    return Math.abs(twiceArea) / (2 * scale ** 2);
+  }
+
+  function sideLengths(points) {
+    return points.map((point, index) => length(vector(point, points[(index + 1) % 4])) / scale);
+  }
+
+  function interiorAngles(points) {
+    return points.map((point, index) => angleBetween(
+      vector(point, points[(index + 3) % 4]),
+      vector(point, points[(index + 1) % 4]),
+    ));
+  }
+
+  function calculate(points) {
+    const [a, b, c, d] = points;
+    const acVector = vector(a, c);
+    const bdVector = vector(b, d);
+    const abVector = vector(a, b);
+    const denominator = cross(acVector, bdVector);
+    const splitAC = cross(abVector, bdVector) / denominator;
+    const splitBD = cross(abVector, acVector) / denominator;
+    const intersection = { x: a.x + acVector.x * splitAC, y: a.y + acVector.y * splitAC };
+    const oa = vector(intersection, a);
+    const ob = vector(intersection, b);
+    const angleAOB = angleBetween(oa, ob);
+    const ac = length(acVector) / scale;
+    const bd = length(bdVector) / scale;
+    const equalDiagonals = Math.abs(ac - bd) <= epsilon;
+    const perpendicularDiagonals = Math.abs(angleAOB - 90) <= epsilon;
+    let innerType = '平行四边形';
+    if (equalDiagonals && perpendicularDiagonals) {
+      innerType = '正方形';
+    } else if (equalDiagonals) {
+      innerType = '菱形';
+    } else if (perpendicularDiagonals) {
+      innerType = '矩形';
+    }
+
+    const midpoints = points.map((point, index) => {
+      const next = points[(index + 1) % 4];
+      return { x: (point.x + next.x) / 2, y: (point.y + next.y) / 2 };
+    });
+    const outerArea = area(points);
+    const innerArea = area(midpoints);
+    return {
+      midpoints,
+      outerSides: sideLengths(points),
+      innerSides: sideLengths(midpoints),
+      outerAngles: interiorAngles(points),
+      innerAngles: interiorAngles(midpoints),
+      diagonals: [ac, bd],
+      diagonalParts: [ac * splitAC, ac * (1 - splitAC), bd * splitBD, bd * (1 - splitBD)],
+      intersection,
+      splitAC,
+      splitBD,
+      diagonalAngle: angleAOB,
+      angleAOB,
+      acuteDiagonalAngle: Math.min(angleAOB, 180 - angleAOB),
+      equalDiagonals,
+      perpendicularDiagonals,
+      outerArea,
+      innerArea,
+      areaRatio: innerArea / outerArea,
+      innerType,
+      parameters: {
+        ac,
+        bd,
+        angle: angleAOB,
+        splitAC,
+        splitBD,
+        origin: intersection,
+        rotation: Math.atan2(oa.y, oa.x) / radiansPerDegree,
+        orientation: Math.sign(cross(oa, ob)),
+      },
+    };
+  }
+
+  const presets = {};
+  for (const [key, name, bd, angle] of [
+    ['generic', '平行四边形', 12, 60],
+    ['rhombus', '菱形', 18, 60],
+    ['rectangle', '矩形', 12, 90],
+    ['square', '正方形', 18, 90],
+  ]) {
+    const parameters = { ...defaults, bd, angle };
+    presets[key] = { name, points: construct(parameters), parameters };
+  }
+
+  return { scale, defaults, presets, construct, isValid, fit, calculate };
+})();
+
+(() => {
+  'use strict';
+
+  const byId = id => document.getElementById(id);
+  const board = byId('board');
+  const stageRects = [...board.querySelectorAll(':scope > rect')];
+  const svgNs = 'http://www.w3.org/2000/svg';
+  const groups = { A: { bd: 12, angle: 60 }, B: { bd: 12, angle: 90 }, C: { bd: 18, angle: 60 }, D: { bd: 18, angle: 90 } };
+  const letters = 'ABCD';
+  const presetButtons = [...document.querySelectorAll('.preset')];
+  const coloredEdges = [...byId('colored-edges').querySelectorAll('line')];
+  const polygons = {
+    平行四边形: '9,7 29,7 23,25 3,25',
+    矩形: '3,8 29,8 29,24 3,24',
+    菱形: '16,4 29,16 16,28 3,16',
+    正方形: '6,6 26,6 26,26 6,26',
+  };
+  const inputs = [
+    { id: 'bd-length', key: 'bd', output: 'bd-output', min: 8, max: 20, scale: 1, digits: 2, unit: ' cm' },
+    { id: 'diag-angle', key: 'angle', output: 'angle-output', min: 30, max: 150, scale: 1, digits: 1, unit: '°' },
+    { id: 'split-ac', key: 'splitAC', output: 'ac-split-output', min: 20, max: 80, scale: 100, digits: 1, unit: '%' },
+    { id: 'split-bd', key: 'splitBD', output: 'bd-split-output', min: 20, max: 80, scale: 100, digits: 1, unit: '%' },
+  ];
+
+  let selectedGroup = 'A';
+  let matchesPreset = true;
+  let points = Geometry.construct(groups.A);
+  let data;
+  let dragging;
+  let viewWidth = 760;
+  let viewHeight = 510;
+  let announcementTimer;
+
+  function svgElement(name, attributes, parent) {
+    const element = document.createElementNS(svgNs, name);
+    setAttributes(element, attributes);
+    parent.append(element);
+    return element;
+  }
+
+  function setAttributes(element, attributes) {
+    for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value);
+  }
+
+  function pointMarker(parent, label, draggable = false) {
+    const group = svgElement('g', { class: draggable ? 'vertex' : 'midpoint' }, parent);
+    if (draggable) {
+      setAttributes(group, { tabindex: '0', role: 'button', 'aria-label': `顶点 ${label}，用方向键移动` });
+      svgElement('circle', { r: '23', class: 'handle-hit' }, group);
+      svgElement('circle', { r: '13', class: 'handle-focus' }, group);
+    }
+    svgElement('circle', { r: draggable ? '8' : '4.5', class: 'marker-dot' }, group);
+    svgElement('text', { class: 'diagram-label', 'aria-hidden': 'true' }, group).textContent = label;
+    return group;
+  }
+
+  const vertexMarkers = [...letters].map(label => pointMarker(byId('vertices'), label, true));
+  const midpointMarkers = [...'EFGH'].map(label => pointMarker(byId('midpoints'), label));
+
+  function updateMarker(marker, point, reference, distance) {
+    marker.setAttribute('transform', `translate(${point.x} ${point.y})`);
+    const dx = point.x - reference.x;
+    const dy = point.y - reference.y;
+    const length = Math.hypot(dx, dy) || 1;
+    setAttributes(marker.querySelector('text'), { x: distance * dx / length, y: distance * dy / length });
+  }
+
+  function updateLine(line, start, end) {
+    setAttributes(line, { x1: start.x, y1: start.y, x2: end.x, y2: end.y });
+  }
+
+  function anglePath(vertex, a, b, isRight, maxRadius) {
+    const lenA = Math.hypot(a.x - vertex.x, a.y - vertex.y);
+    const lenB = Math.hypot(b.x - vertex.x, b.y - vertex.y);
+    const radius = Math.min(maxRadius, lenA * 0.45, lenB * 0.45);
+    const v = { x: (a.x - vertex.x) * radius / lenA, y: (a.y - vertex.y) * radius / lenA };
+    const w = { x: (b.x - vertex.x) * radius / lenB, y: (b.y - vertex.y) * radius / lenB };
+    const start = `${vertex.x + v.x} ${vertex.y + v.y}`;
+    const end = `${vertex.x + w.x} ${vertex.y + w.y}`;
+    return isRight
+      ? `M${start} L${vertex.x + v.x + w.x} ${vertex.y + v.y + w.y} L${end}`
+      : `M${start} A${radius} ${radius} 0 0 ${v.x * w.y - v.y * w.x > 0 ? 1 : 0} ${end}`;
+  }
+
+  function syncLayers() {
+    const showDiagonals = byId('show-diagonals').checked;
+    const showAngle = byId('show-angle').checked;
+    const useColors = byId('match-colors').checked;
+    for (const id of ['diagonals', 'intersection']) byId(id).style.display = showDiagonals ? '' : 'none';
+    for (const element of document.querySelectorAll('.diag-legend')) element.hidden = !(showDiagonals || useColors);
+    byId('angle-o').style.display = showDiagonals && showAngle ? '' : 'none';
+    byId('angle-f').style.display = showAngle ? '' : 'none';
+    byId('mid-outline').style.display = useColors ? 'none' : '';
+    byId('colored-edges').removeAttribute('hidden');
+    byId('colored-edges').style.display = useColors ? '' : 'none';
+  }
+
+  function render(activeInput) {
+    data = Geometry.calculate(points);
+    const [a, b, c, d] = points;
+    const [e, f, g, h] = data.midpoints;
+    const o = data.intersection;
+    const center = { x: (e.x + g.x) / 2, y: (e.y + g.y) / 2 };
+    const pointString = set => set.map(({ x, y }) => `${x},${y}`).join(' ');
+    byId('outer-shape').setAttribute('points', pointString(points));
+    for (const id of ['mid-fill', 'mid-outline']) byId(id).setAttribute('points', pointString(data.midpoints));
+    updateLine(byId('diagonal-ac'), a, c);
+    updateLine(byId('diagonal-bd'), b, d);
+    coloredEdges.forEach((line, index) => updateLine(line, data.midpoints[index], data.midpoints[(index + 1) % 4]));
+    points.forEach((point, index) => updateMarker(vertexMarkers[index], point, o, 23));
+    data.midpoints.forEach((point, index) => updateMarker(midpointMarkers[index], point, center, 16));
+    byId('intersection').setAttribute('transform', `translate(${o.x} ${o.y})`);
+    setAttributes(byId('intersection').querySelector('text'), { x: -14, y: 12 });
+    byId('angle-o').setAttribute('d', anglePath(o, a, b, data.perpendicularDiagonals, 29));
+    byId('angle-f').setAttribute('d', anglePath(f, e, g, data.perpendicularDiagonals, 23));
+
+    const readings = {
+      ac: [data.diagonals[0], 2], bd: [data.diagonals[1], 2], aob: [data.angleAOB, 1],
+      difference: [Math.abs(data.diagonals[0] - data.diagonals[1]), 2],
+      ef: [data.innerSides[0], 2], fg: [data.innerSides[1], 2],
+      efg: [data.innerAngles[1], 1], hef: [data.innerAngles[0], 1],
+    };
+    for (const [id, [value, digits]] of Object.entries(readings)) byId(`value-${id}`).textContent = value.toFixed(digits);
+    byId('shape-name').textContent = data.innerType;
+    byId('shape-symbol').setAttribute('points', polygons[data.innerType]);
+    byId('shape-box').dataset.shape = data.innerType;
+    for (const [id, matched] of [['equal', data.equalDiagonals], ['perpendicular', data.perpendicularDiagonals]]) {
+      byId(`${id}-condition`).dataset.match = matched;
+      byId(`${id}-state`).textContent = matched ? '是' : '否';
+    }
+    for (const button of presetButtons) button.setAttribute('aria-pressed', matchesPreset && button.dataset.preset === selectedGroup);
+    for (const control of inputs) {
+      const value = data.parameters[control.key] * control.scale;
+      const slider = byId(control.id);
+      if (slider !== activeInput) {
+        slider.min = Math.min(control.min, Math.floor(value));
+        slider.max = Math.max(control.max, Math.ceil(value));
+        slider.value = value;
+      }
+      const display = `${value.toFixed(control.digits)}${control.unit}`;
+      byId(control.output).value = display;
+      slider.setAttribute('aria-valuetext', display);
+    }
+  }
+
+  function stageSize(width, height) {
+    viewWidth = width;
+    viewHeight = height;
+    board.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    for (const rect of stageRects) setAttributes(rect, { width, height });
+  }
+
+  function fitStage(shape) {
+    const xs = shape.map(({ x }) => x);
+    const ys = shape.map(({ y }) => y);
+    const left = Math.min(...xs), right = Math.max(...xs);
+    const top = Math.min(...ys), bottom = Math.max(...ys);
+    const padding = 39;
+    const scale = Math.max(1, (right - left + padding * 2) / 760, (bottom - top + padding * 2) / 510);
+    stageSize(Math.ceil(760 * scale), Math.ceil(510 * scale));
+    return Geometry.fit(shape, { minX: padding, minY: padding, maxX: viewWidth - padding, maxY: viewHeight - padding });
+  }
+
+  function selectGroup(group) {
+    selectedGroup = group;
+    matchesPreset = true;
+    points = fitStage(Geometry.construct(groups[group]));
+    render();
+  }
+
+  function announceConvexity() {
+    const notice = byId('board-announce');
+    notice.hidden = false;
+    clearTimeout(announcementTimer);
+    announcementTimer = setTimeout(() => { notice.hidden = true; }, 1600);
+  }
+
+  function moveVertex(index, position) {
+    const clamp = (value, max) => Math.max(36, Math.min(max - 36, value));
+    const candidate = points.slice();
+    candidate[index] = { x: clamp(position.x, viewWidth), y: clamp(position.y, viewHeight) };
+    if (!Geometry.isValid(candidate)) {
+      announceConvexity();
+      return;
+    }
+    if (candidate[index].x === points[index].x && candidate[index].y === points[index].y) return;
+    matchesPreset = false;
+    points = candidate;
+    render();
+  }
+
+  function boardPosition(event) {
+    const location = board.createSVGPoint();
+    location.x = event.clientX;
+    location.y = event.clientY;
+    return location.matrixTransform(board.getScreenCTM().inverse());
+  }
+
+  for (const [index, marker] of vertexMarkers.entries()) {
+    marker.addEventListener('pointerdown', event => {
+      if (dragging || event.button !== 0) return;
+      event.preventDefault();
+      const start = boardPosition(event);
+      dragging = { pointerId: event.pointerId, dx: points[index].x - start.x, dy: points[index].y - start.y };
+      marker.classList.add('dragging');
+      marker.setPointerCapture(event.pointerId);
+    });
+    marker.addEventListener('pointermove', event => {
+      if (dragging?.pointerId !== event.pointerId) return;
+      const position = boardPosition(event);
+      moveVertex(index, { x: position.x + dragging.dx, y: position.y + dragging.dy });
+    });
+    marker.addEventListener('lostpointercapture', event => {
+      if (dragging?.pointerId !== event.pointerId) return;
+      dragging = null;
+      marker.classList.remove('dragging');
+    });
+    marker.addEventListener('keydown', event => {
+      const directions = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+      if (!Object.hasOwn(directions, event.key)) return;
+      event.preventDefault();
+      const [dx, dy] = directions[event.key];
+      const step = event.shiftKey ? 15 : 3;
+      moveVertex(index, { x: points[index].x + dx * step, y: points[index].y + dy * step });
+    });
+  }
+
+  for (const button of presetButtons) button.addEventListener('click', () => selectGroup(button.dataset.preset));
+  byId('reset').addEventListener('click', () => selectGroup(selectedGroup));
+  for (const id of ['show-diagonals', 'show-angle', 'match-colors']) byId(id).addEventListener('change', syncLayers);
+  for (const control of inputs) {
+    const slider = byId(control.id);
+    slider.addEventListener('input', () => {
+      const parameters = { ...data.parameters, [control.key]: slider.valueAsNumber / control.scale };
+      const shape = Geometry.construct(parameters);
+      if (!Geometry.isValid(shape)) {
+        announceConvexity();
+        render();
+        return;
+      }
+      points = fitStage(shape);
+      matchesPreset = false;
+      render(slider);
+    });
+  }
+
+  syncLayers();
+  selectGroup('A');
+})();
+
+</script>
+</body>
+</html>
